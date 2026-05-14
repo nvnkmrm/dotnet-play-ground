@@ -15,7 +15,9 @@ public class BookServiceTest
         _bookService = new BookService(_fakeTimeProvider,
             new Mock<ITestService1>().Object,
             new Mock<ITestService2>().Object,
-            new Mock<ITestService3>().Object);
+            new Mock<ITestService3>().Object,
+            new Mock<ITestService>().Object,
+            new Mock<ITestService>().Object);
     }
 
     [Fact]
