@@ -14,6 +14,7 @@ public class Startup(IConfiguration configuration)
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         
+        services.AddTransient<ITestService, TestServiceKey1>();
         services.AddTransient<ITestService1, TestService1>();
         services.AddScoped<ITestService2, TestService2>();
         services.AddSingleton<ITestService3, TestService3>();

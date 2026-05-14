@@ -12,4 +12,10 @@
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="LearnRequireKeyword.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
