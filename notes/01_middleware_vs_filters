@@ -1,0 +1,59 @@
+While both **Filters** and **Middleware** in ASP.NET Core allow you to intercept and run code at specific points in the request processing pipeline, they operate at different levels of the application and have distinct purposes.
+
+The easiest way to understand the difference is to think about **where** they sit and **what** they know about your application.
+
+---
+
+## The Core Difference: The Pipeline
+
+The fundamental difference lies in their positioning within the ASP.NET Core request life cycle.
+
+* **Middleware** sits in the global HTTP pipeline. It wraps around the entire application process. It handles the raw `HttpContext` before the request even reaches the MVC/Routing infrastructure.
+* **Filters** sit *inside* the MVC (Action) execution pipeline. They only run **after** middleware has successfully routed the request to a specific controller and action.
+
+---
+
+## Detailed Comparison
+
+| Feature | Middleware | Filters (Action Filters) |
+| --- | --- | --- |
+| **Scope** | **Global:** Applies to every single incoming HTTP request (including static files, images, etc.). | **Scoped:** Can be applied globally, but also targeted to specific Controllers or individual Actions. |
+| **Awareness** | Knows about the raw HTTP request (`HttpContext`), but is **blind to MVC routing, controllers, or actions**. | Fully **aware of MVC context**. It knows which action is running, its parameters, and the model state. |
+| **Execution Order** | Runs very early in the request pipeline, long before a controller is selected. | Runs late in the pipeline, right before and after the controller action executes. |
+| **Use Cases** | Authentication, Logging, CORS, Static Files, Response Compression, Routing. | Model validation, Action-specific caching, custom Authorization logic, logging action execution times. |
+| **Access to DI** | Can use Dependency Injection, but typically via constructor injection (Singleton-like behavior per request). | Full access to Dependency Injection; can easily use scoped services via `TypeFilter` or `ServiceFilter`. |
+
+---
+
+## When to Use Which?
+
+### Go with **Middleware** if:
+
+* You need to manipulate the raw request or response before it hits your application logic (e.g., forcing HTTPS, rewriting URLs).
+* The logic needs to run for **every single request**, regardless of whether it’s an API endpoint, a Razor page, or a static `.css` file.
+* You don't care which controller or action is going to handle the request.
+* *Example:* Checking if a custom header `X-Correlation-ID` exists on every request and adding it if missing.
+
+### Go with **Filters** if:
+
+* You need access to MVC-specific features like `ModelState` (for validation) or the returned `IActionResult`.
+* You want the code to run **only** for specific endpoints (e.g., applying a `[ValidateModel]` filter only to `POST` actions).
+* You need to inspect or modify the arguments passed into a controller method before it runs.
+* *Example:* A custom `[AdminOnly]` filter that checks the user's claims before allowing them into specific dashboard actions.
+
+---
+
+## Summary of the Pipeline Flow
+
+When a request hits your ASP.NET Core application, the flow looks like this:
+
+1. **Request arrives** $\rightarrow$ Passes through **Middleware A** $\rightarrow$ **Middleware B**
+2. Routing Middleware determines which Controller/Action to call.
+3. **Authorization Filters** run $\rightarrow$ **Resource Filters** run.
+4. **Model Binding** occurs (turns raw request data into C# objects).
+5. **Action Filters** run.
+6. **Your Controller Action Executes.**
+7. **Action Filters** run again (post-execution) $\rightarrow$ **Exception/Result Filters** run.
+8. Response travels back out through **Middleware B** $\rightarrow$ **Middleware A** $\rightarrow$ **Client**.
+
+Are you trying to implement a specific feature right now (like logging, authentication, or validation) and wondering which approach fits it best?
